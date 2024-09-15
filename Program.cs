@@ -1,4 +1,5 @@
 ﻿using System.Data.SQLite;
+using System.Diagnostics;
 
 class Program {
     private static List<string> searchResults = new List<string>();
@@ -9,6 +10,9 @@ class Program {
             return;
         }
         switch (args[0]) {
+            case "-h" or "-help":
+                helpMenu();
+                break;
             case "-createdb":
                 createDb();
                 break;
@@ -26,8 +30,8 @@ class Program {
                 }
                 break;
             default:
-                    printErr("Error : Invalid command, plese refer to help menu: ");
-                    helpMenu();
+                    printErr("Error : Invalid command.");
+                    Console.WriteLine("Please refer to help menu accessible throuhg `fzf -h` or `fzf -help`");
                 break;
         }
         return;
@@ -65,7 +69,7 @@ Example Usage:
         Console.ResetColor();
     }
 
-    private static void createDb() {
+    private static void createDb(bool silence = false) {
         string dbPath = getDbPath();
 
         if (!File.Exists(dbPath)) {
@@ -74,6 +78,7 @@ Example Usage:
                 connection.Open();
                 using (var command = new SQLiteCommand("CREATE TABLE IF NOT EXISTS Files (Id INTEGER PRIMARY KEY AUTOINCREMENT, Path TEXT)", connection)) { command.ExecuteNonQuery(); }
             }
+            if (silence) { return; }
             Console.WriteLine($"Database created succesfully, please use `fzf -updatedb to add enteries to the database`");
         } else {
             printErr("Error: Database already exists.");
@@ -84,7 +89,8 @@ Example Usage:
     private static void search(string[] searchTerms) {
         string dbPath = getDbPath();
         if (!File.Exists(dbPath)) {
-            printErr("No database found. Please first create a database with the `fzf -createdb`.");
+            printErr("Error: No database found.");
+            Console.WriteLine("Please first create a database with the `fzf -createdb`.");
             return;
         }
 
@@ -134,7 +140,10 @@ Example Usage:
 
         foreach (var thread in threads) { thread.Join(); }
     
+
         foreach (var result in searchResults) { Console.WriteLine( "\\" + result); }
+
+        if (searchResults.Count == 0) { Console.WriteLine("No matching results found."); }
 
         searchResults.Clear(); segments.Clear(); stuffInWd.Clear();
     }
@@ -234,6 +243,8 @@ Example Usage:
         addToDatabaseThread1.Join();
         addToDatabaseThread2.Join();
 
+        stuff.Clear(); stuffInWd.Clear();
+
         Console.WriteLine("Database update complete.");
     }
 
@@ -248,10 +259,10 @@ Example Usage:
         }
 
         if (del) {
-            Directory.Delete(dbFolderPath, true); Console.WriteLine("Other files did exist, deleted them all.");
+            Directory.Delete(dbFolderPath, true); Console.WriteLine("Deleted database and directory containing it.");
         } else {
             File.Delete(dbPath);
-            createDb();
+            createDb(true);
             Console.WriteLine("Database cleared, run -update db to update the databse.");
         }
     }
