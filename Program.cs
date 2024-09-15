@@ -80,7 +80,7 @@ Example Usage:
             if (silence) { return; }
             Console.WriteLine($"Database created succesfully, please use `fzf -updatedb to add enteries to the database`");
         } else {
-            printErr("Error: Database already exists.");
+            printErr("Error : Database already exists.");
             Console.WriteLine("Please use `fzf -cleardb -d` first and then try running this command again");
         }
     }
@@ -88,7 +88,7 @@ Example Usage:
     private static void search(string[] searchTerms) {
         string dbPath = getDbPath();
         if (!File.Exists(dbPath)) {
-            printErr("Error: No database found.");
+            printErr("Error : No database found.");
             Console.WriteLine("Please first create a database with the `fzf -createdb`.");
             return;
         }
@@ -151,7 +151,7 @@ Example Usage:
         string dbPath = getDbPath();
 
         if (!File.Exists(dbPath)) {
-            printErr("Error: No database found to update.");
+            printErr("Error : No database found to update.");
             Console.WriteLine("Please use `fzf -createdb` first and then try running this command again.");
             return;
         }
@@ -253,7 +253,7 @@ Example Usage:
         string dbFolderPath = Path.GetDirectoryName(dbPath);
 
         if (!File.Exists(dbPath)) {
-            printErr("Error: No database found to clear / delete.");
+            printErr("Error : No database found to clear / delete.");
             return;
         }
 
