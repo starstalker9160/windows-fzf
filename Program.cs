@@ -1,5 +1,4 @@
 ﻿using System.Data.SQLite;
-using System.Diagnostics;
 
 class Program {
     private static List<string> searchResults = new List<string>();
