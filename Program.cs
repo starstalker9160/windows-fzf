@@ -22,17 +22,27 @@ class Program {
                 if (args.Length > 1) {
                     search(args.Skip(1).ToArray());
                 } else {
-                    Console.WriteLine("Please provide search terms after '-s'.");
+                    printErr("Error : No searchTerm provided after `-s`.");
                 }
+                break;
+            default:
+                    printErr("Error : Invalid command, plese refer to help menu: ");
+                    helpMenu();
                 break;
         }
         return;
     }
 
+    private static void printErr(string s) {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine(s);
+        Console.ResetColor();
+    }
+
     private static void search(string[] searchTerms) {
         string dbPath = getDbPath();
         if (!File.Exists(dbPath)) {
-            Console.WriteLine("No database found. Please first create a database with the `fzf -createdb`.");
+            printErr("No database found. Please first create a database with the `fzf -createdb`.");
             return;
         }
 
@@ -129,9 +139,10 @@ Example Usage:
                 string createTableQuery = "CREATE TABLE IF NOT EXISTS Files (Id INTEGER PRIMARY KEY AUTOINCREMENT, Path TEXT)";
                 using (var command = new SQLiteCommand(createTableQuery, connection)) { command.ExecuteNonQuery(); }
             }
-            Console.WriteLine($"Database created succesfully");
+            Console.WriteLine($"Database created succesfully, please use `fzf -updatedb to add enteries to the database`");
         } else {
-            Console.WriteLine("Database already exists, please use `fzf -cleardb -d` to remove it, then run this command again.");
+            printErr("Error: Database already exists.");
+            Console.WriteLine("Please use `fzf -cleardb -d` first and then try running this command again");
         }
     }
 
@@ -139,14 +150,14 @@ Example Usage:
         string dbPath = getDbPath();
 
         if (!File.Exists(dbPath)) {
-            Console.WriteLine("No database found to update, please use `fzf -createdb` to first make a database");
+            printErr("Error: No database found to update.");
+            Console.WriteLine("Please use `fzf -createdb` first and then try running this command again");
             return;
         }
 
         using (var connection = new SQLiteConnection($"Data Source={dbPath};Version=3;")) {
             connection.Open();
 
-            // Create a set of all file paths currently in the database
             var currentFilesInDb = new HashSet<string>();
             string selectQuery = "SELECT Path FROM Files";
             using (var command = new SQLiteCommand(selectQuery, connection)) {
@@ -190,7 +201,7 @@ Example Usage:
         string dbFolderPath = Path.GetDirectoryName(dbPath);
 
         if (!File.Exists(dbPath)) {
-            Console.WriteLine("No database found to clear / delete.");
+            printErr("Error: No database found to clear / delete.");
             return;
         }
 
