@@ -1,7 +1,7 @@
 ﻿using System.Data.SQLite;
 
 class Program {
-    private static List<string> searchResults = new List<string>();
+    private static HashSet<string> searchResults = new HashSet<string>();
 
     static void Main(string[] args) {
         if (args.Length == 0) {
@@ -71,6 +71,10 @@ Example Usage:
     private static void createDb(bool silence = false) {
         string dbPath = getDbPath();
 
+        if (string.IsNullOrWhiteSpace(dbPath)) {
+            throw new ArgumentNullException(nameof(dbPath), "Database path cannot be null or empty.");
+        }
+
         if (!File.Exists(dbPath)) {
             SQLiteConnection.CreateFile(dbPath);
             using (var connection = new SQLiteConnection($"Data Source={dbPath};Version=3;")) {
@@ -94,7 +98,7 @@ Example Usage:
         }
 
         string wd = Directory.GetCurrentDirectory() + "\\";
-        List<string> stuffInWd = new List<string>();
+        HashSet<string> stuffInWd = new HashSet<string>();
         var segments = new List<List<string>>();
 
         using (var connection = new SQLiteConnection($"Data Source={dbPath};Version=3;")) {
@@ -119,7 +123,7 @@ Example Usage:
 
         void ProcessSegments() {
             while (true) {
-                List<string> segment;
+                List<string>? segment;
                 lock (segments) {
                     if (segments.Count == 0) break;
                     segment = segments[0];
@@ -152,8 +156,8 @@ Example Usage:
 
         if (!File.Exists(dbPath)) {
             printErr("Error : No database found to update.");
-            Console.WriteLine("Please use `fzf -createdb` first and then try running this command again.");
-            return;
+            Console.WriteLine("Creating database...");
+            createDb(true);
         }
 
         string wd = Directory.GetCurrentDirectory() + "\\";
@@ -235,6 +239,9 @@ Example Usage:
 
         var addToDatabaseThread1 = new Thread(() => AddToDatabase(stuff));
         var addToDatabaseThread2 = new Thread(AddStuffInWdToDatabase);
+
+        stuff.RemoveWhere(item => item.ToLower().Contains("cache"));
+        stuffInWd.RemoveAll(item => item.ToLower().Contains("cache"));
 
         addToDatabaseThread1.Start();
         addToDatabaseThread2.Start();
